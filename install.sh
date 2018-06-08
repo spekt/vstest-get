@@ -6,10 +6,12 @@ set -o pipefail
 #set -o xtrace
 
 
-url="https://www.nuget.org/api/v2/package"
-versions="https://api.nuget.org/v3-flatcontainer/Microsoft.TestPlatform.Portable/index.json"
 action="install"
 verbosity=0
+
+function _log() {
+    printf "%s\\n" "$*"
+}
 
 function _log_debug() {
     if [[ $verbosity == 1 ]]; then
@@ -24,14 +26,32 @@ function _log_error() {
 
 function verify_dependencies() {
     _log_debug "verify dependencies"
+    if ! [ -x "$(command -v curl)" ]; then
+        _log_error "Required command 'curl' is not available."
+        return 1
+    fi
+
+    if ! [ -x "$(command -v grep)" ]; then
+        _log_error "Required command 'grep' is not available."
+        return 1
+    fi
 }
 
 function install_vstest() {
     _log_debug "installing vstest"
+
+    #url="https://www.nuget.org/api/v2/package"
+    tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'vstest')
+
+    _log "Downloading package to '$tmpdir'..."
 }
 
 function list_vstest_versions() {
     _log_debug "available vstest versions"
+
+    info_url="https://api.nuget.org/v3-flatcontainer/Microsoft.TestPlatform.Portable/index.json"
+    _log "Available vstest versions:"
+    curl --silent $info_url --stderr - | grep -o -P "^.*\"\\d.*\""
 }
 
 function show_usage() {
@@ -77,5 +97,4 @@ while [[ $# -ne 0 ]]; do
 done
 
 
-verify_dependencies
-do_action $action
+verify_dependencies && do_action $action
