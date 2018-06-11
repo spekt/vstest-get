@@ -7,6 +7,8 @@ set -o pipefail
 
 
 action="install"
+install_dir=""
+install_version=""
 verbosity=0
 
 function _log() {
@@ -25,7 +27,7 @@ function _log_error() {
 
 
 function verify_dependencies() {
-    _log_debug "verify dependencies"
+    _log_debug "Verify dependencies"
     if ! [ -x "$(command -v curl)" ]; then
         _log_error "Required command 'curl' is not available."
         return 1
@@ -38,12 +40,29 @@ function verify_dependencies() {
 }
 
 function install_vstest() {
-    _log_debug "installing vstest"
+    _log_debug "Installing vstest"
 
-    #url="https://www.nuget.org/api/v2/package"
-    tmpdir=$(mktemp -d 2>/dev/null || mktemp -d -t 'vstest')
+    url="https://www.nuget.org/api/v2/package/Microsoft.TestPlatform.Portable"
+    tmpdir=$(mktemp -d 2> /dev/null || mktemp -d -t 'vstest')
+    nupkg=$tmpdir/Microsoft.TestPlatform.Portable.nupkg
+
+    if ! [ -d $install_dir ]; then
+        mkdir $install_dir
+        _log_debug "Created install directory at '$install_dir'"
+    fi
+
+    if ! [ -z $install_version ]; then
+        _log_debug "Version is not supported yet. Will download latest."
+    fi
 
     _log "Downloading package to '$tmpdir'..."
+    curl --fail --location --silent --show-error --output "$nupkg" "$url"
+
+    _log_debug "Extracting nuget package in '$tmpdir'..."
+    unzip -oq "$nupkg" -d "$tmpdir"
+
+    _log "Installing test runner to '$install_dir'..."
+    cp -r "$tmpdir/tools/." "$install_dir"
 }
 
 function list_vstest_versions() {
@@ -85,13 +104,24 @@ while [[ $# -ne 0 ]]; do
             shift
             action="list"
             ;;
+        -v|--version)
+            install_version=$2
+            shift
+            shift
+            ;;
         help)
             shift
             action="help"
             ;;
         *)
-            _log_error "install.sh: invalid option '$1'"
-            printf "Try 'install.sh --help' for more information."
+            if [[ "$1" == -* ]]; then
+                _log_error "install.sh: invalid option '$1'"
+                printf "Try 'install.sh --help' for more information."
+                action="error"
+            else
+                install_dir=$1
+                action="install"
+            fi
             break
     esac
 done
