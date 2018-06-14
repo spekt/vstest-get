@@ -41,7 +41,7 @@ param(
 
     [Parameter(Mandatory=$false, Position=0)]
     [ValidateNotNullOrEmpty()]
-    [string] $Directory
+    [string] $Directory="~/.vstest"
 )
 
 $ErrorActionPreference = "Stop"
@@ -92,12 +92,33 @@ function Install-VSTestRunner() {
     Expand-Archive "$nupkg" -DestinationPath "$tmpdir"
 
     Write-Host "Installing test runner to '$install_dir'..."
-    Copy-Item -Recurse "$tmpdir/tools/*" "$install_dir"
+    Copy-Item -Recurse -Force "$tmpdir/tools/*" "$install_dir"
+
+    Write-Host "Installation complete"
+}
+
+function Verify-Install() {
+    Write-Verbose "Verifying vstest install"
+
+    $console_runner=Join-Path "$install_dir" "net451\vstest.console.exe"
+    $console_runner_core=Join-Path "$install_dir" "netcoreapp2.0\vstest.console.dll"
+    if (Test-Path "$console_runner" -and Test-Path "$console_runner_core") {
+        Write-Host "You can invoke the test runner based on target runtime..."
+        Write-Host "  # .NET 4.x desktop framework"
+        Write-Host "  > $console_runner <\path\to\test.dll>"
+        Write-Host "  # .NET core framework"
+        Write-Host "  > dotnet $console_runner_core <\path\to\test.dll>"
+    }
+    else {
+        Write-Host "Error: unable to find test runners at (all or any of) following locations..."
+        Write-Host "  $console_runner"
+        Write-Host "  $console_runner_core"
+    }
 }
 
 function Invoke-VSTestAction() {
     if ($action -eq "install") {
-        Install-VSTestRunner
+        Install-VSTestRunner; Verify-Install
     }
     else {
         Get-VSTestVersions
