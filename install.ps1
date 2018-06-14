@@ -32,7 +32,6 @@
 param(
     [Alias("v")]
     [Parameter()]
-    [ValidateNotNullOrEmpty()]
     [string] $Version,
 
     [Alias("l")]
@@ -102,7 +101,7 @@ function Verify-Install() {
 
     $console_runner=Join-Path "$install_dir" "net451\vstest.console.exe"
     $console_runner_core=Join-Path "$install_dir" "netcoreapp2.0\vstest.console.dll"
-    if (Test-Path "$console_runner" -and Test-Path "$console_runner_core") {
+    if ((Test-Path "$console_runner") -and (Test-Path "$console_runner_core")) {
         Write-Host "You can invoke the test runner based on target runtime..."
         Write-Host "  # .NET 4.x desktop framework"
         Write-Host "  > $console_runner <\path\to\test.dll>"
