@@ -67,6 +67,24 @@ function install_vstest() {
     _log "Installation complete"
 }
 
+function verify_install() {
+    _log_debug "Verifying vstest install"
+
+    console_runner="$install_dir/net451/vstest.console.exe"
+    console_runner_core="$install_dir/netcoreapp2.0/vstest.console.dll"
+    if [ -f "$console_runner" ] && [ -f "$console_runner_core" ]; then
+        _log "You can invoke the test runner based on target runtime..."
+        _log "  # .NET 4.x desktop framework"
+        _log "  > mono $console_runner </path/to/test.dll>"
+        _log "  # .NET core framework"
+        _log "  > dotnet $console_runner_core </path/to/test.dll>"
+    else
+        _log "Error: unable to find test runners at (all or any of) following locations..."
+        _log "  $console_runner"
+        _log "  $console_runner_core"
+    fi
+}
+
 function list_vstest_versions() {
     _log_debug "available vstest versions"
 
@@ -91,7 +109,7 @@ function show_usage() {
 function do_action() {
     case "$1" in
         install)
-            install_vstest
+            install_vstest && verify_install
             ;;
         list)
             list_vstest_versions
