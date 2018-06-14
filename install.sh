@@ -7,7 +7,7 @@ set -o pipefail
 
 
 action="install"
-install_dir=""
+install_dir="$HOME/.vstest"
 install_version=""
 verbosity=0
 
@@ -28,15 +28,14 @@ function _log_error() {
 
 function verify_dependencies() {
     _log_debug "Verify dependencies"
-    if ! [ -x "$(command -v curl)" ]; then
-        _log_error "Required command 'curl' is not available."
-        return 1
-    fi
-
-    if ! [ -x "$(command -v grep)" ]; then
-        _log_error "Required command 'grep' is not available."
-        return 1
-    fi
+    depends=(curl cp grep mktemp unzip)
+    
+    for tool in "${depends[@]}"; do
+        if ! [ -x "$(command -v "$tool")" ]; then
+            _log_error "Required command '${tool}' is not available."
+            return 1
+        fi
+    done
 }
 
 function install_vstest() {
@@ -46,13 +45,14 @@ function install_vstest() {
     tmpdir=$(mktemp -d 2> /dev/null || mktemp -d -t 'vstest')
     nupkg=$tmpdir/Microsoft.TestPlatform.Portable.nupkg
 
-    if ! [ -d $install_dir ]; then
-        mkdir $install_dir
+    if ! [ -d "$install_dir" ]; then
+        _log "Installation directory '$install_dir' does not exist. We'll create it."
+        mkdir "$install_dir"
         _log_debug "Created install directory at '$install_dir'"
     fi
 
     if ! [ -z $install_version ]; then
-        _log_debug "Version is not supported yet. Will download latest."
+        _log_debug "Version is not supported yet. We'll download latest."
     fi
 
     _log "Downloading package to '$tmpdir'..."
@@ -63,6 +63,8 @@ function install_vstest() {
 
     _log "Installing test runner to '$install_dir'..."
     cp -r "$tmpdir/tools/." "$install_dir"
+
+    _log "Installation complete"
 }
 
 function list_vstest_versions() {
@@ -74,13 +76,16 @@ function list_vstest_versions() {
 }
 
 function show_usage() {
-    printf "Usage: install.sh [OPTION]... DIRECTORY"
-    printf "Install vstest runner to DIRECTORY."
-    printf "  -v, --version         fetch the specified version of vstest runner"
-    printf "  -l, --list            list available versions of vstest runner"
+    printf "Usage: install.sh [OPTION]... [DIRECTORY]\\n"
+    printf "Install vstest runner to DIRECTORY (installs to ~/.vstest by default).\\n"
+    printf "\\n"
+    printf "Available options:\\n"
+    printf "  -v, --version         fetch the specified version of vstest runner\\n"
+    printf "  -l, --list            list available versions of vstest runner\\n"
     printf "      --help            display this help and exit\\n"
-    printf "Full documentation at <https://spekt.github.io/vstest-get>."
-    printf "Please report any issues at <https://github.com/spekt/vstest-get/issues>."
+    printf "\\n"
+    printf "Full documentation at <https://spekt.github.io/vstest-get>.\\n"
+    printf "Please report any issues at <https://github.com/spekt/vstest-get/issues>.\\n"
 }
 
 function do_action() {
@@ -109,7 +114,7 @@ while [[ $# -ne 0 ]]; do
             shift
             shift
             ;;
-        help)
+        --help)
             shift
             action="help"
             ;;
