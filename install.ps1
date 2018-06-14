@@ -28,7 +28,7 @@
     Author: Spekt Developers
 #>
 
-[CmdletBinding(DefaultParameterSetName="Path")]
+[CmdletBinding()]
 param(
     [Alias("v")]
     [Parameter()]

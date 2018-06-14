@@ -9,7 +9,7 @@ We also ship a docker image cooked with these scripts, check out [vstest-docker]
 ```powershell
 # Powershell
 # Installs to ~/.vstest by default
-> iex (new-object net.webclient).downloadstring("https://raw.githubusercontent.com/spekt/vstest-get/master/install.ps1"))
+> iex (new-object net.webclient).downloadstring("https://raw.githubusercontent.com/spekt/vstest-get/master/install.ps1")
 
 # Install to any directory
 # Download install.ps1 from https://raw.githubusercontent.com/spekt/vstest-get/master/install.ps1
