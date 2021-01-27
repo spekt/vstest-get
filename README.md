@@ -1,5 +1,7 @@
 # VSTest installer
 
+![Maintenance](https://img.shields.io/maintenance/no/2018)
+
 Set of scripts to install portable `vstest.console` runner on your desktop. The
 portable test runner only requires .NET runtime (no external dependencies like VS).
 
